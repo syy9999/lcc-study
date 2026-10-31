@@ -1,4 +1,6 @@
 # 运行依赖
+# anthropic SDK：课程代码使用的 Messages API 客户端。
+# 本项目通过 DASHSCOPE_BASE_URL 指向阿里云百炼的 Anthropic 兼容端点。
 anthropic>=0.25.0
 python-dotenv>=1.0.0
 pyyaml>=6.0

@@ -8,9 +8,10 @@
 | 项目 | 说明 |
 |---|---|
 | 参考仓库 | `../learn-claude-code-main/`（课程原文 + 完整参考实现） |
-| 本仓库 | 我的独立实现 + 学习笔记 + 实验记录 |
+| 本仓库 | 中文教程副本 + 我的独立实现 + 学习笔记 + 实验记录 |
 
-参考仓库刻意**不复制**进来，避免"照着抄一遍"的假学习。每章的对照入口写在章节 `README.md` 底部。
+中文教程和配图已经导入本仓库，方便离线阅读；**参考实现刻意不复制**，避免"照着抄一遍"的假学习。
+每章的教程是 `README.md`，你的笔记是 `NOTES.md`，实现是 `code.py`。
 
 ## 核心认知
 
@@ -28,10 +29,10 @@ Agent Loop:
 
 每章按同样的节奏推进：
 
-1. **读**：打开参考仓库的 `README.zh.md`，理解这一章要解决什么问题。
+1. **读**：打开本章 `README.md`（已导入的中文教程），理解这一章要解决什么问题。
 2. **写**：合上参考代码，自己实现本章的 `code.py`。
 3. **跑**：用一个真实任务验证，记录输入、输出和报错。
-4. **对照**：写完之后再看参考实现，把差异写进章节 `README.md`。
+4. **对照**：写完之后再看参考实现，把差异写进本章的 `NOTES.md`。
 5. **复盘**：用自己的话回答"本章要回答的问题"。
 
 > 关键原则：**先自己写，再对照**。直接抄一遍参考实现，学习效果接近于零。
@@ -48,26 +49,45 @@ lcc-study/
 ├── .env.example              # 环境变量模板
 ├── notes/                    # 跨章节笔记、术语表
 ├── scripts/
-│   └── check_setup.py        # 环境自检
+│   ├── check_setup.py        # 环境自检
+│   └── import_tutorials.py   # 从参考仓库导入中文教程与配图
 ├── tests/                    # 我自己补充的测试
+├── skills/                   # s07 技能示例（教程资源）
+├── licenses/                 # 第三方许可证
+├── THIRD_PARTY_NOTICES.md    # 教程来源声明
 ├── s01_agent_loop/           # 每章一个文件夹，与参考仓库同名
-│   ├── README.md             #   学习目标 + 我的笔记 + 差异记录
-│   └── code.py               #   我自己的实现
+│   ├── README.md             #   中文教程原文（从参考仓库导入）
+│   ├── NOTES.md              #   我的学习笔记、差异记录
+│   ├── code.py               #   我自己的实现
+│   └── images/               #   教程配图
 ├── s02_tool_use/
 ├── ...
 └── s17_goal_loop/
 ```
 
+## 教程同步
+
+中文教程、配图和 `skills/` 由 `scripts/import_tutorials.py` 从
+`../learn-claude-code-main` 导入。参考仓库更新后，在仓库根目录重新运行：
+
+```sh
+python scripts/import_tutorials.py
+```
+
+脚本只会覆盖 `s*/README.md`、`s*/images/` 和 `skills/`，
+**不会动你的 `NOTES.md` 和 `code.py`**。导入时会自动把教程里的
+`ANTHROPIC_*` 配置示例替换为本项目的 `DASHSCOPE_*` 变量。
+
 ## 快速开始
 
 ```sh
-# 1. 创建虚拟环境（在仓库根目录）
-python -m venv .venv
+# 1. 激活 conda 环境（已创建好）
+conda activate lcc-study
 
-# Git Bash
-source .venv/Scripts/activate
-# CMD:      .venv\Scripts\activate.bat
-# PowerShell: .venv\Scripts\Activate.ps1
+# 如果换一台机器，从零创建：
+# conda create -n lcc-study python=3.12 -y
+# conda activate lcc-study
+# pip install -r requirements.txt
 
 # 2. 安装依赖
 pip install -r requirements.txt
@@ -75,15 +95,49 @@ pip install -r requirements-dev.txt   # 可选：测试与格式化
 
 # 3. 配置 API Key
 cp .env.example .env
-# 编辑 .env，填入 ANTHROPIC_API_KEY 和 MODEL_ID
-# 使用 Anthropic 兼容服务时，再设置 ANTHROPIC_BASE_URL
+# 编辑 .env，填入阿里云百炼的 DASHSCOPE_API_KEY
+# DASHSCOPE_BASE_URL 和 MODEL_ID 已配好，通常不用改
 
 # 4. 环境自检
 python scripts/check_setup.py
+python scripts/check_setup.py --ping   # 可选：发一次真实请求验证连通性
 
-# 5. 运行某一章
+# 5. 运行某一章（在仓库根目录运行，便于读取根目录的 .env）
 python s01_agent_loop/code.py
 ```
+
+> Windows 下如果不激活环境，可以用
+> `conda run --no-capture-output -n lcc-study python ...`。
+> 不加 `--no-capture-output` 时，conda 捕获中文输出可能触发 GBK 编码错误。
+
+## 模型服务：阿里云百炼
+
+课程代码使用 **Anthropic Messages API 的形状**（`client.messages.create`），
+但实际请求发往 **阿里云百炼的 Anthropic 兼容端点**，模型为 `deepseek-v4.1-flash-1017`。
+因此 `anthropic` SDK 仍然保留，只是把 `api_key` 和 `base_url` 换成百炼的配置。
+
+| 环境变量 | 说明 |
+|---|---|
+| `DASHSCOPE_API_KEY` | 阿里云百炼 API Key（你只需要填这个） |
+| `DASHSCOPE_BASE_URL` | `https://dashscope.aliyuncs.com/apps/anthropic` |
+| `MODEL_ID` | `deepseek-v4.1-flash-1017` |
+
+每章代码的客户端初始化方式：
+
+```python
+import os
+from anthropic import Anthropic
+
+client = Anthropic(
+    api_key=os.environ["DASHSCOPE_API_KEY"],
+    base_url=os.environ["DASHSCOPE_BASE_URL"],
+)
+MODEL = os.environ["MODEL_ID"]
+```
+
+> - 不需要设置 `ANTHROPIC_API_KEY` / `ANTHROPIC_BASE_URL`，本项目统一用 `DASHSCOPE_*`。
+> - SDK 会自动在 `base_url` 后拼接 `/v1/messages`。
+> - `load_dotenv()` 默认从当前工作目录找 `.env`，所以请在仓库根目录运行章节代码。
 
 ## 17 章地图
 
@@ -110,6 +164,7 @@ python s01_agent_loop/code.py
 ## 约定
 
 - 章节目录与参考仓库**同名**，方便直接对比：`diff s01_agent_loop/code.py ../learn-claude-code-main/s01_agent_loop/code.py`。
+- 每章的 `README.md` 是从参考仓库导入的中文教程（由脚本维护，不要手改）；`NOTES.md` 是你的笔记；`code.py` 是你的实现。
 - `code.py` 是"我的实现"。引用或改写参考代码时，在文件头注明来源。
 - 笔记用中文，代码标识符用英文，注释可中英混用。
 - 课程运行时生成的 `.memory/`、`.tasks/`、`.worktrees/` 等状态目录已被 `.gitignore` 忽略。

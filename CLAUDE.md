@@ -13,13 +13,27 @@
 ## 结构约定
 
 - 每章一个目录 `sNN_topic/`，与参考仓库同名。
-- `README.md` = 学习目标 + 我的笔记 + 与参考实现的差异。
+- `README.md` = 从参考仓库导入的中文教程，由 `scripts/import_tutorials.py` 维护，不要手改。
+- `NOTES.md` = 学习目标 + 我的笔记 + 与参考实现的差异。
 - `code.py` = 我的独立实现，可单文件直接运行。
+- `images/` = 教程配图；`skills/` = s07 技能示例。
 - 跨章节笔记放 `notes/`；进度记录在 `PROGRESS.md`。
+
+## 模型服务
+
+- 供应商：阿里云百炼（DashScope），不是 Anthropic 官方 API。
+- 协议：继续使用 `anthropic` SDK 的 Messages API，但 `base_url` 指向百炼的 Anthropic 兼容端点。
+- 环境变量：`DASHSCOPE_API_KEY`、`DASHSCOPE_BASE_URL`、`MODEL_ID=deepseek-v4.1-flash-1017`。
+- 不要引入 `ANTHROPIC_API_KEY` / `ANTHROPIC_BASE_URL` 配置；创建客户端时显式传参：
+  `Anthropic(api_key=os.environ["DASHSCOPE_API_KEY"], base_url=os.environ["DASHSCOPE_BASE_URL"])`。
+- 导入的教程里如出现 `ANTHROPIC_*` 示例，已由 `scripts/import_tutorials.py` 替换为 `DASHSCOPE_*`。
+- conda 环境名为 `lcc-study`。
 
 ## 常用命令
 
-- 环境自检：`python scripts/check_setup.py`
-- 运行章节：`python s01_agent_loop/code.py`
-- 测试：`pytest`
+- 环境自检：`conda run --no-capture-output -n lcc-study python scripts/check_setup.py`
+- 运行章节：`conda run --no-capture-output -n lcc-study python s01_agent_loop/code.py`
+- 测试：`conda run --no-capture-output -n lcc-study python -m pytest`
 - 与参考实现对比：`diff s01_agent_loop/code.py ../learn-claude-code-main/s01_agent_loop/code.py`
+
+> Windows 上 `conda run` 捕获中文输出可能触发 GBK 编码错误，统一加 `--no-capture-output`。

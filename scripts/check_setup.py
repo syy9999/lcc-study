@@ -16,13 +16,18 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 MIN_PYTHON = (3, 10)
+DEFAULT_BASE_URL = "https://dashscope.aliyuncs.com/apps/anthropic"
+PLACEHOLDER_MARKERS = ("sk-xxx", "请替换", "your-api-key", "<your")
 
 # Windows 控制台默认可能是 GBK，统一输出为 UTF-8，避免中文乱码。
 for stream in (sys.stdout, sys.stderr):
     if hasattr(stream, "reconfigure"):
         stream.reconfigure(encoding="utf-8", errors="replace")
+
+# 课程代码使用 anthropic SDK 的 Messages API；
+# 通过 DASHSCOPE_BASE_URL 指向阿里云百炼的 Anthropic 兼容端点。
 REQUIRED_PACKAGES = {
-    "anthropic": "anthropic",
+    "anthropic": "anthropic SDK（百炼兼容客户端）",
     "dotenv": "python-dotenv",
     "yaml": "pyyaml",
 }
@@ -63,15 +68,24 @@ def check_env() -> bool:
     load_dotenv(env_path, override=True)
 
     ok = True
-    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
-    key_ok = bool(api_key) and "sk-ant-xxx" not in api_key
-    ok &= report(key_ok, "ANTHROPIC_API_KEY 已配置" if key_ok else "ANTHROPIC_API_KEY 未配置或仍是占位符")
+    api_key = os.getenv("DASHSCOPE_API_KEY", "").strip()
+    placeholder = any(marker in api_key.lower() for marker in PLACEHOLDER_MARKERS)
+    key_ok = bool(api_key) and not placeholder
+    ok &= report(
+        key_ok,
+        "DASHSCOPE_API_KEY 已配置" if key_ok else "DASHSCOPE_API_KEY 未配置或仍是占位符",
+    )
 
     model = os.getenv("MODEL_ID", "").strip()
     ok &= report(bool(model), f"MODEL_ID = {model}" if model else "MODEL_ID 未配置")
 
-    base_url = os.getenv("ANTHROPIC_BASE_URL", "").strip()
-    print(f"[INFO] ANTHROPIC_BASE_URL = {base_url or '（官方默认）'}")
+    base_url = os.getenv("DASHSCOPE_BASE_URL", "").strip()
+    ok &= report(
+        bool(base_url),
+        f"DASHSCOPE_BASE_URL = {base_url}" if base_url else "DASHSCOPE_BASE_URL 未配置",
+    )
+    if base_url and base_url.rstrip("/") != DEFAULT_BASE_URL:
+        print(f"[INFO] 当前使用自定义端点；百炼默认端点为 {DEFAULT_BASE_URL}")
     return ok
 
 
@@ -91,13 +105,13 @@ def ping() -> bool:
     try:
         from anthropic import Anthropic
     except ImportError:
-        return report(False, "anthropic 未安装，无法 ping")
+        return report(False, "anthropic SDK 未安装，无法 ping")
 
-    api_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
+    api_key = os.getenv("DASHSCOPE_API_KEY", "").strip()
     model = os.getenv("MODEL_ID", "").strip()
-    base_url = os.getenv("ANTHROPIC_BASE_URL", "").strip() or None
+    base_url = os.getenv("DASHSCOPE_BASE_URL", "").strip() or DEFAULT_BASE_URL
     if not api_key or not model:
-        return report(False, "缺少 ANTHROPIC_API_KEY 或 MODEL_ID，跳过 ping")
+        return report(False, "缺少 DASHSCOPE_API_KEY 或 MODEL_ID，跳过 ping")
 
     try:
         client = Anthropic(api_key=api_key, base_url=base_url)
