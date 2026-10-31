@@ -1,0 +1,32 @@
+# ---- Secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# ---- IDE / OS ----
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ---- 课程运行时生成的状态 ----
+.memory/
+.tasks/
+.mailboxes/
+.worktrees/
+.transcripts/
+.task_outputs/
+.scheduled_tasks.json
+s*/.runtime/

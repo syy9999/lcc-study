@@ -1,0 +1,4 @@
+# 开发依赖（可选）
+-r requirements.txt
+pytest>=8.0
+ruff>=0.5
