@@ -1,6 +1,6 @@
 # s02 · Tool Use —— 学习笔记
 
-> 本章教程：[README.md](./README.md) · 参考实现：`../learn-claude-code-main/s02_tool_use/code.py`
+> 本章教程：[README.md](./README.md) · 手把手实现教程：[TUTORIAL.md](./TUTORIAL.md) · 参考实现：`../learn-claude-code-main/s02_tool_use/code.py`
 
 > **格言**：加一个工具，只加一个 handler —— 循环不用动，新工具注册进 dispatch map 就行
 
