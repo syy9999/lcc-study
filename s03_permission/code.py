@@ -185,7 +185,6 @@ def check_rules(tool_name: str, args: dict) -> str | None:
             return rule["message"]
     return None
 
-
 # Gate 3: User approval - wait for confirmation after rule match
 def ask_user(tool_name: str, args: dict, reason: str) -> str:
     print(f"\n\033[33m[permission] {reason}\033[0m")
