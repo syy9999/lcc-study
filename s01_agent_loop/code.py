@@ -109,6 +109,7 @@ def dump_messages(messages: list) -> None:
 # 完成 agent_loop 主循环
 def agent_loop(messages: list) -> None:
     while True:
+
         response = client.messages.create(
             model=MODEL,
             system=SYSTEM,
@@ -119,6 +120,8 @@ def agent_loop(messages: list) -> None:
 
         # 把 assistant 这一轮追加进 messages
         messages.append({"role": "assistant", "content": response.content})
+
+        print(messages)
 
         # 收集 tool_use, 没有就直接 return
         tool_calls = [block for block in response.content if block.type == "tool_use"]

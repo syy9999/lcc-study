@@ -1,0 +1,63 @@
+s01: Agent Loop
+Enter a question, press Enter to send. Type q to quit.
+
+s01 >> What is the current git branch?
+
+[
+  {
+    "role": "user",
+    "content": "What is the current git branch?"
+  },
+  {
+    "role": "assistant",
+    "content": [
+      "ThinkingBlock(signature='', thinking='', type='thinking')",
+      "ToolUseBlock(id='toolu_ed7885b39ea64aada0b1b9ad', caller=None, input={'command': 'git branch --show-current'}, name='bash', type='tool_use', toolset_name=None)"
+    ]
+  }
+]
+
+
+$ git branch --show-current
+main
+
+
+[
+  {
+    "role": "user",
+    "content": "What is the current git branch?"
+  },
+  {
+    "role": "assistant",
+    "content": [
+      "ThinkingBlock(signature='', thinking='', type='thinking')",
+      "ToolUseBlock(id='toolu_ed7885b39ea64aada0b1b9ad', caller=None, input={'command': 'git branch --show-current'}, name='bash', type='tool_use', toolset_name=None)"
+    ]
+  },
+  {
+    "role": "user",
+    "content": [
+      {
+        "type": "tool_result",
+        "tool_use_id": "toolu_ed7885b39ea64aada0b1b9ad",
+        "content": "main"
+      }
+    ]
+  },
+  {
+    "role": "assistant",
+    "content": [
+      "ThinkingBlock(signature='', thinking='The current git branch is `main`. Let me verify with more detail maybe. The answer is simple.\\n\\nI could also run `git status -sb` to confirm. But the answer is clear: main.', type='thinking')",
+      "TextBlock(citations=None, text='The current git branch is **`main`**.', type='text')"
+    ]
+  }
+]
+
+
+
+The current git branch is **`main`**.
+
+0 user text: What is the current git branch?
+1 assistant ['thinking', 'tool_use']
+2 user ['tool_result']
+3 assistant ['thinking', 'text']
