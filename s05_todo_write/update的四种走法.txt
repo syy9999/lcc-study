@@ -1,0 +1,67 @@
+## 四种入参，对应四种走法
+
+假设 `update` 收到下面这些 `todos`，看解析逻辑分别怎么走。
+
+### 例 1：本来就是 list —— 不解析，直接用
+
+```
+todos = [
+    {"content": "读代码", "status": "pending"},
+    {"content": "实现工具", "status": "in_progress"},
+]
+```
+
+已经是列表，跳过字符串解析，直接进入校验流程（检查状态、是否只有一个 in_progress）。
+
+### 例 2：合法 JSON 字符串 —— 第一层 `json.loads` 成功
+
+模型回传的是一段双引号 JSON：
+
+```
+todos = '[{"content": "读代码", "status": "pending"}, {"content": "实现工具", "status": "in_progress"}]'
+```
+
+`json.loads(todos)` 直接解析成上面例 1 那样的 list，第二层兜底根本不会进。
+
+### 例 3：JSON 认不出，但 Python 字面量能认 —— 第二层 `ast.literal_eval` 兜住
+
+模型用了单引号，这不是合法 JSON：
+
+```
+todos = "[{'content': '读代码', 'status': 'pending'}, {'content': '写测试', 'status': 'pending'}]"
+```
+
+- `json.loads` 抛 `JSONDecodeError`（单引号不被 JSON 接受）；
+- 进入 `ast.literal_eval(todos)`，把它当作 Python 字面量解析成功，得到 list；
+- 之后正常校验、替换 `self.items`、`render()` 回显。
+
+再比如带 `None` 的写法，JSON 里要写 `null`，而 Python 字面量层能接受 `None`，也是靠这一层兜底。
+
+### 例 4：两层都解析不了 —— 抛 `ValueError`
+
+```
+todos = "随便一段话，不是数组"
+```
+
+- `json.loads` 失败；
+- `ast.literal_eval` 也抛 `SyntaxError`（不是合法字面量）；
+- 最终抛出统一错误：
+
+```
+ValueError: todos must be a list or JSON array string
+```
+
+并且通过 `from e` 把最开始那个语法错误挂为原因，方便回溯。
+
+### 对照成一条流程
+
+表格
+
+| 入参样子 | 走哪一层 | 结果 |
+| --- | --- | --- |
+| `[{...}, {...}]`（list） | 不解析 | 直接校验 |
+| `'[{"content": ...}]'`（双引号 JSON 串） | `json.loads` | 解析成功 |
+| `"[{'content': ...}]"`（单引号 Python 串） | JSON 失败 → `ast.literal_eval` | 兜底成功 |
+| `"一段话"`（都不是） | 两层都失败 | 抛 `ValueError` |
+
+核心就是：**先按最严格的 JSON 认，认不出再放宽到 Python 字面量，再不行就报错**，尽量接住模型各种不规范的输出。
